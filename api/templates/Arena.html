@@ -74,17 +74,6 @@
             margin: auto;
         }
 
-        .cell {
-            width: 50px;
-            height: 50px;
-            background-color: #dce3f1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-
         .robot {
             position: absolute;
             bottom: 0;
@@ -177,6 +166,9 @@
                 <div class="data-row">
                     <span>Ultrasonic 3 Distance:</span> <div class="data-box" id="ultrasonic3">0 cm</div>
                 </div>
+                <div class="data-row">
+                    <span>Mileage:</span> <div class="data-box" id="mileage">0 cm</div>
+                </div>
             </div>
         </div>
     </div>
@@ -196,6 +188,7 @@
                 document.getElementById("ultrasonic1").textContent = `${data.ultrasonic1} cm`;
                 document.getElementById("ultrasonic2").textContent = `${data.ultrasonic2} cm`;
                 document.getElementById("ultrasonic3").textContent = `${data.ultrasonic3} cm`;
+                document.getElementById("mileage").textContent = `${data.mileage} cm`;
 
                 // Update robot position
                 updateRobotPosition(data.compass);
