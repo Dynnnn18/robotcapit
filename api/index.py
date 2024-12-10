@@ -4,7 +4,7 @@ from firebase_admin import credentials, db
 from flask_cors import CORS
 
 # Inisialisasi Firebase Admin SDK
-cred = credentials.Certificate("./api/robotcapit-5ae75-firebase-adminsdk-f1fij-6b16a61c88.json")
+cred = credentials.Certificate("api/robotcapit-5ae75-firebase-adminsdk-f1fij-6b16a61c88.json")
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://robotcapit-5ae75-default-rtdb.asia-southeast1.firebasedatabase.app/'  # Ganti dengan URL Realtime Database Anda
 })
