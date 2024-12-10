@@ -57,7 +57,7 @@
         }
 
         .left-column h2, .right-column h2 {
-            color: #4a90e2; /* Blue color for section titles */
+            color: #4a90e2;
         }
 
         .arena {
@@ -85,13 +85,12 @@
             border-radius: 5px;
         }
 
-        /* Robot with arrow shape (combination of triangle and rectangle) */
         .robot {
             position: absolute;
             bottom: 0;
             right: 0;
             width: 50px;
-            height: 25px; /* Rectangle part */
+            height: 25px;
             background-color: #4a90e2;
             border-radius: 10px;
             transform-origin: center bottom;
@@ -101,14 +100,14 @@
         .robot::after {
             content: '';
             position: absolute;
-            top: -25px; /* Position the triangle above the rectangle */
+            top: -25px;
             left: 50%;
             margin-left: -15px;
             width: 0;
             height: 0;
             border-left: 15px solid transparent;
             border-right: 15px solid transparent;
-            border-bottom: 25px solid #4a90e2; /* Triangle part */
+            border-bottom: 25px solid #4a90e2;
         }
 
         .data-container {
@@ -184,43 +183,33 @@
 
     <script>
         const robot = document.getElementById("robot");
-        let compassAngle = 0;
-        let encoderDistance = 0;
 
-        function updateRobotPosition() {
-            const arena = document.getElementById("arena");
-            const arenaRect = arena.getBoundingClientRect();
+        async function fetchData() {
+            try {
+                const response = await fetch("http://localhost:5000/get-data/robot");
+                const data = await response.json();
 
-            // Calculate new position
-            const xOffset = encoderDistance * Math.sin((compassAngle * Math.PI) / 180);
-            const yOffset = encoderDistance * Math.cos((compassAngle * Math.PI) / 180);
+                // Update data
+                document.getElementById("compass-value").textContent = `${data.compass}°`;
+                document.getElementById("gripper-status").textContent = data.gripper;
+                document.getElementById("object-color").textContent = data.color;
+                document.getElementById("ultrasonic1").textContent = `${data.ultrasonic1} cm`;
+                document.getElementById("ultrasonic2").textContent = `${data.ultrasonic2} cm`;
+                document.getElementById("ultrasonic3").textContent = `${data.ultrasonic3} cm`;
 
-            const newBottom = parseFloat(robot.style.bottom) + yOffset;
-            const newRight = parseFloat(robot.style.right) + xOffset;
+                // Update robot position
+                updateRobotPosition(data.compass);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        }
 
-            // Update position with bounds
-            robot.style.bottom = `${Math.max(0, Math.min(arenaRect.height, newBottom))}px`;
-            robot.style.right = `${Math.max(0, Math.min(arenaRect.width, newRight))}px`;
-
-            // Rotate robot to reflect compass direction
+        function updateRobotPosition(compassAngle) {
             robot.style.transform = `rotate(${compassAngle}deg)`;
         }
 
-        setInterval(() => {
-            // Simulated random data updates
-            compassAngle = Math.floor(Math.random() * 360);
-            encoderDistance = Math.floor(Math.random() * 10) - 5; // Random forward/backward distance
-
-            document.getElementById("compass-value").textContent = `${compassAngle}°`;
-            document.getElementById("gripper-status").textContent = Math.random() > 0.5 ? "Gripping" : "Not Gripping";
-            document.getElementById("object-color").textContent = ["Red", "Green", "Blue"][Math.floor(Math.random() * 3)];
-            document.getElementById("ultrasonic1").textContent = Math.floor(Math.random() * 100) + " cm";
-            document.getElementById("ultrasonic2").textContent = Math.floor(Math.random() * 100) + " cm";
-            document.getElementById("ultrasonic3").textContent = Math.floor(Math.random() * 100) + " cm";
-
-            // Update robot position in arena
-            updateRobotPosition();
-        }, 1000);
+        // Fetch data every second
+        setInterval(fetchData, 1000);
     </script>
 
 </body>
