@@ -1,58 +1,73 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, db
 
 # Inisialisasi Firebase Admin SDK
-cred = credentials.Certificate("api/robotcapit-5ae75-firebase-adminsdk-f1fij-a055001033.json")
-firebase_admin.initialize_app(cred)
-
-# Inisialisasi Firestore
-db = firestore.client()
+cred = credentials.Certificate("../api/robotcapit-5ae75-firebase-adminsdk-f1fij-857bf9c8e0.json")
+firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://robotcapit-5ae75-default-rtdb.asia-southeast1.firebasedatabase.app/'  # Ganti dengan URL Realtime Database Anda
+})
 
 # Inisialisasi Flask
 app = Flask(__name__)
 
-# Route untuk mendapatkan semua data dari koleksi tertentu
-@app.route('/get-data/<collection_name>', methods=['GET'])
-def get_data(collection_name):
+# Route untuk mendapatkan semua data dari path tertentu
+@app.route('/get-data/<path>', methods=['GET'])
+def get_data(path):
     try:
-        collection_ref = db.collection(collection_name)
-        docs = collection_ref.stream()
-        data = {doc.id: doc.to_dict() for doc in docs}
+        ref = db.reference(path)
+        data = ref.get()
         return jsonify(data), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Route untuk menambahkan data ke koleksi tertentu
-@app.route('/add-data/<collection_name>', methods=['POST'])
-def add_data(collection_name):
+# Route untuk menambahkan atau memperbarui data di path tertentu
+@app.route('/set-data/<path>', methods=['POST'])
+def set_data(path):
     try:
         data = request.json  # Data dikirimkan sebagai JSON
-        doc_ref = db.collection(collection_name).add(data)
-        return jsonify({"message": "Data added successfully", "id": doc_ref[1].id}), 201
+        ref = db.reference(path)
+        ref.set(data)
+        return jsonify({"message": "Data set successfully"}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Route untuk menghapus dokumen berdasarkan ID
-@app.route('/delete-data/<collection_name>/<doc_id>', methods=['DELETE'])
-def delete_data(collection_name, doc_id):
-    try:
-        doc_ref = db.collection(collection_name).document(doc_id)
-        doc_ref.delete()
-        return jsonify({"message": "Document deleted successfully"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# Route untuk memperbarui dokumen berdasarkan ID
-@app.route('/update-data/<collection_name>/<doc_id>', methods=['PUT'])
-def update_data(collection_name, doc_id):
+# Route untuk menambahkan data baru dengan ID unik di path tertentu
+@app.route('/push-data/<path>', methods=['POST'])
+def push_data(path):
     try:
         data = request.json
-        doc_ref = db.collection(collection_name).document(doc_id)
-        doc_ref.update(data)
-        return jsonify({"message": "Document updated successfully"}), 200
+        ref = db.reference(path)
+        new_ref = ref.push(data)
+        return jsonify({"message": "Data pushed successfully", "key": new_ref.key}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# Route untuk menghapus data dari path tertentu
+@app.route('/delete-data/<path>', methods=['DELETE'])
+def delete_data(path):
+    try:
+        ref = db.reference(path)
+        ref.delete()
+        return jsonify({"message": "Data deleted successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Route untuk memperbarui data di path tertentu
+@app.route('/update-data/<path>', methods=['PUT'])
+def update_data(path):
+    try:
+        data = request.json
+        ref = db.reference(path)
+        ref.update(data)
+        return jsonify({"message": "Data updated successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+@app.route('/')
+
+def main ():
+    return render_template('Arena.html')
+
 
 # Menjalankan server Flask
 if __name__ == '__main__':
