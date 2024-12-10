@@ -3,7 +3,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 
 # Inisialisasi Firebase Admin SDK
-cred = credentials.Certificate("robotcapit-5ae75-firebase-adminsdk-f1fij-a055001033.json")
+cred = credentials.Certificate("api/robotcapit-5ae75-firebase-adminsdk-f1fij-a055001033.json")
 firebase_admin.initialize_app(cred)
 
 # Inisialisasi Firestore
