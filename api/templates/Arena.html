@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IoT Monitoring and Data Visualization</title>
+    <title>Team 1</title>
     <style>
-        /* Tambahkan gaya yang sama seperti sebelumnya */
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f4f4f9;
@@ -18,6 +17,14 @@
             justify-content: center;
             height: 100vh;
         }
+
+        h1, h2 {
+            font-size: 30px;
+            font-weight: 600;
+            margin: 10px 0;
+            color: #fff;
+        }
+
         .title-container {
             text-align: center;
             padding: 20px;
@@ -26,7 +33,9 @@
             color: #fff;
             width: 100%;
             border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
+
         .main-container {
             display: flex;
             justify-content: space-between;
@@ -36,16 +45,79 @@
             border-radius: 15px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             padding: 20px;
+            overflow: hidden;
         }
+
         .left-column, .right-column {
             width: 48%;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
+
+        .left-column h2, .right-column h2 {
+            color: #4a90e2; /* Blue color for section titles */
+        }
+
+        .arena {
+            display: grid;
+            grid-template-columns: repeat(10, 50px);
+            grid-template-rows: repeat(10, 50px);
+            gap: 2px;
+            background-color: #fff;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            position: relative;
+            width: 520px;
+            height: 520px;
+            margin: auto;
+        }
+
+        .cell {
+            width: 50px;
+            height: 50px;
+            background-color: #dce3f1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        /* Robot with arrow shape (combination of triangle and rectangle) */
+        .robot {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 50px;
+            height: 25px; /* Rectangle part */
+            background-color: #4a90e2;
+            border-radius: 10px;
+            transform-origin: center bottom;
+            transition: transform 0.3s ease, bottom 0.3s ease, right 0.3s ease;
+        }
+
+        .robot::after {
+            content: '';
+            position: absolute;
+            top: -25px; /* Position the triangle above the rectangle */
+            left: 50%;
+            margin-left: -15px;
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 25px solid #4a90e2; /* Triangle part */
+        }
+
         .data-container {
             background-color: #fff;
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
+
         .data-row {
             font-size: 18px;
             font-weight: bold;
@@ -54,6 +126,7 @@
             justify-content: space-between;
             align-items: center;
         }
+
         .data-box {
             padding: 15px;
             background-color: #4a90e2;
@@ -62,12 +135,16 @@
             border-radius: 8px;
             width: 100%;
             text-align: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .data-box:hover {
+            background-color: #357ab7;
         }
     </style>
-    <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js"></script>
 </head>
 <body>
+
     <div class="title-container">
         <h1>IoT Monitoring and Data Visualization</h1>
     </div>
@@ -75,7 +152,9 @@
     <div class="main-container">
         <div class="left-column">
             <h2>Arena Robot</h2>
-            <!-- Arena robot bisa ditambahkan di sini jika perlu -->
+            <div class="arena" id="arena">
+                <div id="robot" class="robot"></div>
+            </div>
         </div>
 
         <div class="right-column">
@@ -104,36 +183,45 @@
     </div>
 
     <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            databaseURL: "YOUR_DATABASE_URL",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
+        const robot = document.getElementById("robot");
+        let compassAngle = 0;
+        let encoderDistance = 0;
 
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        function updateRobotPosition() {
+            const arena = document.getElementById("arena");
+            const arenaRect = arena.getBoundingClientRect();
 
-        // Reference to the data in Firebase
-        const dataRef = database.ref("robot");
+            // Calculate new position
+            const xOffset = encoderDistance * Math.sin((compassAngle * Math.PI) / 180);
+            const yOffset = encoderDistance * Math.cos((compassAngle * Math.PI) / 180);
 
-        // Listen for changes in the data
-        dataRef.on("value", (snapshot) => {
-            const data = snapshot.val();
+            const newBottom = parseFloat(robot.style.bottom) + yOffset;
+            const newRight = parseFloat(robot.style.right) + xOffset;
 
-            // Update the data on the page
-            document.getElementById("compass-value").textContent = `${data.compass || 0}°`;
-            document.getElementById("gripper-status").textContent = data.gripper || "Not Gripping";
-            document.getElementById("object-color").textContent = data.color || "N/A";
-            document.getElementById("ultrasonic1").textContent = `${data.ultrasonic1 || 0} cm`;
-            document.getElementById("ultrasonic2").textContent = `${data.ultrasonic2 || 0} cm`;
-            document.getElementById("ultrasonic3").textContent = `${data.ultrasonic3 || 0} cm`;
-        });
+            // Update position with bounds
+            robot.style.bottom = `${Math.max(0, Math.min(arenaRect.height, newBottom))}px`;
+            robot.style.right = `${Math.max(0, Math.min(arenaRect.width, newRight))}px`;
+
+            // Rotate robot to reflect compass direction
+            robot.style.transform = `rotate(${compassAngle}deg)`;
+        }
+
+        setInterval(() => {
+            // Simulated random data updates
+            compassAngle = Math.floor(Math.random() * 360);
+            encoderDistance = Math.floor(Math.random() * 10) - 5; // Random forward/backward distance
+
+            document.getElementById("compass-value").textContent = `${compassAngle}°`;
+            document.getElementById("gripper-status").textContent = Math.random() > 0.5 ? "Gripping" : "Not Gripping";
+            document.getElementById("object-color").textContent = ["Red", "Green", "Blue"][Math.floor(Math.random() * 3)];
+            document.getElementById("ultrasonic1").textContent = Math.floor(Math.random() * 100) + " cm";
+            document.getElementById("ultrasonic2").textContent = Math.floor(Math.random() * 100) + " cm";
+            document.getElementById("ultrasonic3").textContent = Math.floor(Math.random() * 100) + " cm";
+
+            // Update robot position in arena
+            updateRobotPosition();
+        }, 1000);
     </script>
+
 </body>
 </html>
