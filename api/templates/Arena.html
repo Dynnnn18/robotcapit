@@ -182,7 +182,7 @@
     
         async function fetchData() {
             try {
-                const response = await fetch("http://localhost:5000/get-data/robot");
+                const response = await fetch("/get-data/robot");
                 const data = await response.json();
     
                 // Update data
