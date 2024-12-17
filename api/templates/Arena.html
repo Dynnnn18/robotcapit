@@ -55,7 +55,7 @@
     
         let posX = 690;  // Koordinat X awal robot
         let posY = 450;  // Koordinat Y awal robot
-        let speed = 3;   // Kecepatan gerakan robot dalam piksel per detik
+        let speed = 60;   // Kecepatan gerakan robot dalam piksel per detik
     
         async function fetchData() {
             try {
@@ -79,7 +79,7 @@
         }
     
         function updateRobotPosition(realX, realY, compassAngle) {
-            const scale = 60; // 3 piksel = 1 cm
+            const scale = 3; // 3 piksel = 1 cm
     
             // Hitung posisi pada kanvas
             const canvasX = 690 - realX * scale; // Koordinat kanan ke kiri
