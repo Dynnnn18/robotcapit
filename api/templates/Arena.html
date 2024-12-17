@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Team 1</title>
     <link rel="stylesheet" href="/static/mobile.css">
+ 
+        
 </head>
 <body>
 
@@ -18,7 +20,6 @@
             <div class="arena" id="arena">
                 <div id="robot" class="robot"></div>
             </div>
-            <button id="reset-button" class="reset-button">Reset Position</button>
         </div>
 
         <div class="right-column">
@@ -51,17 +52,16 @@
 
     <script>
         const robot = document.getElementById("robot");
-        const resetButton = document.getElementById("reset-button");
-
+    
         let posX = 690;  // Koordinat X awal robot
         let posY = 450;  // Koordinat Y awal robot
-        let speed = 20;   // Kecepatan gerakan robot dalam piksel per detik
-
+        let speed = 3;   // Kecepatan gerakan robot dalam piksel per detik
+    
         async function fetchData() {
             try {
                 const response = await fetch("/get-data/robot");
                 const data = await response.json();
-
+    
                 // Update data
                 document.getElementById("compass-value").textContent = `${data.compass}°`;
                 document.getElementById("gripper-status").textContent = data.gripper;
@@ -70,64 +70,57 @@
                 document.getElementById("ultrasonic2").textContent = `${data.ultrasonic2} cm`;
                 document.getElementById("ultrasonic3").textContent = `${data.ultrasonic3} cm`;
                 document.getElementById("encoder").textContent = `${data.encoder} cm`;
-
+    
                 // Update robot position
                 updateRobotPosition(data.realX, data.realY, data.compass);
             } catch (error) {
                 console.error("Error fetching data:", error);
             }
         }
-
+    
         function updateRobotPosition(realX, realY, compassAngle) {
             const scale = 3; // 3 piksel = 1 cm
-
+    
             // Hitung posisi pada kanvas
             const canvasX = 690 - realX * scale; // Koordinat kanan ke kiri
             const canvasY = realY * scale;      // Koordinat bawah ke atas
-
+    
             // Perbarui posisi robot
             robot.style.right = `${canvasX}px`;
             robot.style.bottom = `${canvasY}px`;
             robot.style.transform = `rotate(${compassAngle}deg)`;
+            moveRobot(compassAngle  );
         }
-
-        function resetRobotPosition() {
-            // Reset posisi robot ke nilai awal
-            posX = 690;
-            posY = 0;
-
-            // Perbarui tampilan posisi robot
+    
+        // Fungsi untuk menggerakkan robot berdasarkan arah kompas
+        function moveRobot(compassAngle) {
+            const radian = (compassAngle * Math.PI) / 180; // Menghitung radian dari sudut kompas
+            const deltaX = speed * Math.sin(radian);       // Perubahan posisi pada sumbu X
+            const deltaY = speed * Math.cos(radian);       // Perubahan posisi pada sumbu Y
+    
+            // Update posisi robot
+            posX += deltaX;
+            posY += deltaY;
+    
+            // Pastikan robot tetap berada dalam batas arena
+            posX = Math.max(0, Math.min(690, posX));
+            posY = Math.max(0, Math.min(450, posY));
+    
+            // Perbarui tampilan robot
             robot.style.right = `${690 - posX}px`;
             robot.style.bottom = `${posY}px`;
-            robot.style.transform = `rotate(0deg)`;
-
-            console.log("Robot position reset to initial values.");
         }
-
-        // Tambahkan event listener untuk tombol reset
-        resetButton.addEventListener("click", resetRobotPosition);
-
-        // Fetch data setiap 1 detik
-        setInterval(fetchData, 500);
+    
+        // Fetch data every second
+        setInterval(fetchData, 1000);
+    
+        // Move robot every 100ms based on the compass value
+        // setInterval(() => {
+        //     // Ambil nilai kompas dari elemen data
+        //     const compassValue = parseFloat(document.getElementById("compass-value").textContent);
+        //     moveRobot(compassValue);
+        // }, 100); // Gerakkan robot setiap 100ms
     </script>
-
-    <style>
-        /* Tambahkan gaya untuk tombol reset */
-        .reset-button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .reset-button:hover {
-            background-color: #0056b3;
-        }
-    </style>
 
 </body>
 </html>
