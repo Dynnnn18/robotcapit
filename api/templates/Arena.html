@@ -55,7 +55,7 @@
 
         let posX = 690;  // Koordinat X awal robot
         let posY = 450;  // Koordinat Y awal robot
-        let speed = 5;   // Kecepatan gerakan robot dalam piksel per detik
+        let speed = 20;   // Kecepatan gerakan robot dalam piksel per detik
 
         async function fetchData() {
             try {
@@ -108,7 +108,7 @@
         resetButton.addEventListener("click", resetRobotPosition);
 
         // Fetch data setiap 1 detik
-        setInterval(fetchData, 1000);
+        setInterval(fetchData, 500);
     </script>
 
     <style>
