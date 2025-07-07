@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Form Report PT Artha</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
@@ -11,13 +11,11 @@
       background-color: #f4f6f9;
       padding: 20px;
     }
-
     h2 {
       text-align: center;
       margin-bottom: 24px;
       color: #333;
     }
-
     form {
       background-color: white;
       padding: 20px;
@@ -26,13 +24,11 @@
       max-width: 800px;
       margin: auto;
     }
-
     label {
       display: block;
       margin: 12px 0 6px;
       font-weight: 600;
     }
-
     input, textarea {
       width: 100%;
       padding: 10px;
@@ -41,7 +37,6 @@
       margin-bottom: 12px;
       font-size: 14px;
     }
-
     .button {
       padding: 10px 16px;
       background-color: #007bff;
@@ -52,18 +47,15 @@
       margin: 8px 0;
       font-size: 14px;
     }
-
     .button:hover {
       background-color: #0056b3;
     }
-
     .preview {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
       margin-bottom: 16px;
     }
-
     .preview img {
       width: 80px;
       height: 60px;
@@ -71,7 +63,6 @@
       border: 1px solid #ccc;
       border-radius: 6px;
     }
-
     canvas {
       width: 100%;
       height: 150px;
@@ -80,19 +71,16 @@
       background-color: #fff;
       touch-action: none;
     }
-
     .signature-section {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 20px;
       margin-top: 24px;
     }
-
     .signature-box {
       display: flex;
       flex-direction: column;
     }
-
     .actions {
       text-align: center;
       margin-top: 30px;
@@ -188,13 +176,14 @@
       afterInput.value = '';
     });
 
-    function toDataURL(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = e => resolve(e.target.result);
-        reader.onerror = err => reject(err);
-        reader.readAsDataURL(file);
-      });
+    function toDataURL(url) {
+      return fetch(url)
+        .then(response => response.blob())
+        .then(blob => new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        }));
     }
 
     async function generatePDF() {
@@ -202,37 +191,51 @@
       const doc = new jsPDF();
       const form = document.forms['reportForm'];
 
+      // Ambil header image dari API route
+      let headerDataUrl;
+      try {
+        headerDataUrl = await toDataURL('/api/templates/header');
+      } catch (err) {
+        alert('Gagal memuat gambar header dari server');
+        return;
+      }
+
+      const headerWidth = 190;
+      const headerHeight = 30;
+      const centerX = (210 - headerWidth) / 2;
+      doc.addImage(headerDataUrl, 'PNG', centerX, 10, headerWidth, headerHeight);
+
+      let y = 45;
       doc.setFontSize(16);
-      doc.text("PT. ARTHA SOLUSI ADITAMA", 10, 15);
-
+      doc.text("IMAGES REPORT", 10, y);
+      y += 10;
       doc.setFontSize(11);
-      doc.text("Address: Ruko Botania, Blok B27 No. 6, Belian, Batam Centre, Batam", 10, 22);
-
-      doc.text("IMAGES REPORT", 10, 32);
-      doc.text("1. Project: " + form.project.value, 10, 40);
-      doc.text("2. Customer: " + form.customer.value, 10, 47);
-      doc.text("3. Technician: " + form.technician.value, 10, 54);
-      doc.text("4. PIC Customer: " + form.pic.value, 10, 61);
+      doc.text("1. Project: " + form.project.value, 10, y);
+      y += 7;
+      doc.text("2. Customer: " + form.customer.value, 10, y);
+      y += 7;
+      doc.text("3. Technician: " + form.technician.value, 10, y);
+      y += 7;
+      doc.text("4. PIC Customer: " + form.pic.value, 10, y);
+      y += 7;
 
       const formattedDate = formatTanggalEnglish(form.workingTime.value);
       const timeInFormatted = formatTimeTo12Hour(form.timeIn.value);
       const timeOutFormatted = formatTimeTo12Hour(form.timeOut.value);
 
-      doc.text("Working Date: " + formattedDate, 10, 68);
-      doc.text("Time In: " + timeInFormatted + " | Time Out: " + timeOutFormatted, 10, 75);
-
-      let y = 83;
+      doc.text("Working Date: " + formattedDate, 10, y);
+      y += 7;
+      doc.text("Time In: " + timeInFormatted + " | Time Out: " + timeOutFormatted, 10, y);
+      y += 8;
 
       async function insertImageRow(title, files) {
         doc.text(title, 10, y);
         y += 5;
         const xPositions = [10, 75, 140];
-
         for (let i = 0; i < files.length; i++) {
-          const dataUrl = await toDataURL(files[i]);
-          doc.addImage(dataUrl, 'JPEG', xPositions[i], y, 50, 30); // smaller size
+          const dataUrl = await fileToDataURL(files[i]);
+          doc.addImage(dataUrl, 'JPEG', xPositions[i], y, 50, 30);
         }
-
         y += 38;
       }
 
@@ -260,79 +263,19 @@
       doc.save('report.pdf');
     }
 
+    // Fungsi khusus untuk File object ke DataURL (karena gambar input dari user)
+    function fileToDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = err => reject(err);
+        reader.readAsDataURL(file);
+      });
+    }
+
     function formatTanggalEnglish(dateStr) {
+      if (!dateStr) return "";
       const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
       const months = ["January", "February", "March", "April", "May", "June",
                       "July", "August", "September", "October", "November", "December"];
-      const dateObj = new Date(dateStr);
-      const dayName = days[dateObj.getDay()];
-      const day = dateObj.getDate();
-      const monthName = months[dateObj.getMonth()];
-      const year = dateObj.getFullYear();
-      return `${dayName}, ${monthName} ${day}, ${year}`;
-    }
-
-    function formatTimeTo12Hour(timeStr) {
-      if (!timeStr) return "";
-      const [hour, minute] = timeStr.split(":");
-      const h = parseInt(hour);
-      const ampm = h >= 12 ? "PM" : "AM";
-      const hour12 = h % 12 || 12;
-      return `${String(hour12).padStart(2, '0')}:${minute} ${ampm}`;
-    }
-
-    function setupCanvas(canvas) {
-      const ctx = canvas.getContext("2d");
-      ctx.lineWidth = 1.5;
-      let drawing = false;
-
-      canvas.addEventListener("mousedown", (e) => {
-        drawing = true;
-        ctx.beginPath();
-        ctx.moveTo(e.offsetX, e.offsetY);
-      });
-
-      canvas.addEventListener("mousemove", (e) => {
-        if (!drawing) return;
-        ctx.lineTo(e.offsetX, e.offsetY);
-        ctx.stroke();
-      });
-
-      canvas.addEventListener("mouseup", () => drawing = false);
-      canvas.addEventListener("mouseout", () => drawing = false);
-
-      canvas.addEventListener("touchstart", (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const touch = e.touches[0];
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-        drawing = true;
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-      });
-
-      canvas.addEventListener("touchmove", (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const touch = e.touches[0];
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-        if (!drawing) return;
-        ctx.lineTo(x, y);
-        ctx.stroke();
-      });
-
-      canvas.addEventListener("touchend", () => drawing = false);
-    }
-
-    function clearCanvas(canvas) {
-      const ctx = canvas.getContext("2d");
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
-    const ttPT = document.getElementById("ttPT");
-    const ttCustomer = document.getElementById("ttCustomer");
-    setupCanvas(ttPT);
-    setupCanvas(ttCustomer);
-  </script>
-</body>
-</html>
+      const dateObj
