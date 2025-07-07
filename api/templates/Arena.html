@@ -1,126 +1,351 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team 1</title>
-    <link rel="stylesheet" href="/static/mobile.css">
- 
-        
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Form Report PT Artha</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f9;
+      padding: 20px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 24px;
+      color: #333;
+    }
+
+    form {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 800px;
+      margin: auto;
+    }
+
+    label {
+      display: block;
+      margin: 12px 0 6px;
+      font-weight: 600;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    .button {
+      padding: 10px 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 8px 0;
+      font-size: 14px;
+    }
+
+    .button:hover {
+      background-color: #0056b3;
+    }
+
+    .preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .preview img {
+      width: 80px;
+      height: 60px;
+      object-fit: cover;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 150px;
+      border: 1px solid #aaa;
+      border-radius: 8px;
+      background-color: #fff;
+      touch-action: none;
+    }
+
+    .signature-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .signature-box {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .actions {
+      text-align: center;
+      margin-top: 30px;
+    }
+  </style>
 </head>
 <body>
+  <h2>Form Report PT Artha</h2>
+  <form id="reportForm">
+    <label>Upload Header Logo:</label>
+    <input type="file" id="headerInput" accept="image/*" required>
 
-    <div class="title-container">
-        <h1>IoT Monitoring and Data Visualization</h1>
+    <label>Project:</label>
+    <input type="text" name="project" required>
+
+    <label>Customer:</label>
+    <input type="text" name="customer" required>
+
+    <label>Technician:</label>
+    <input type="text" name="technician" required>
+
+    <label>Person In Charge Customer:</label>
+    <input type="text" name="pic">
+
+    <label>Working Date:</label>
+    <input type="date" name="workingTime">
+
+    <label>Time In:</label>
+    <input type="time" name="timeIn">
+
+    <label>Time Out:</label>
+    <input type="time" name="timeOut">
+
+    <label>Keterangan:</label>
+    <textarea name="note" rows="3"></textarea>
+
+    <label>Image Before:</label>
+    <input type="file" id="beforeInput" accept="image/*" hidden multiple>
+    <button type="button" class="button" onclick="beforeInput.click()">Tambah Gambar Before</button>
+    <div id="beforePreview" class="preview"></div>
+
+    <label>Image After:</label>
+    <input type="file" id="afterInput" accept="image/*" hidden multiple>
+    <button type="button" class="button" onclick="afterInput.click()">Tambah Gambar After</button>
+    <div id="afterPreview" class="preview"></div>
+
+    <div class="signature-section">
+      <div class="signature-box">
+        <label>Tanda Tangan Pihak PT:</label>
+        <canvas id="ttPT"></canvas>
+        <button type="button" class="button" onclick="clearCanvas(ttPT)">Hapus TT PT</button>
+      </div>
+      <div class="signature-box">
+        <label>Tanda Tangan Customer:</label>
+        <canvas id="ttCustomer"></canvas>
+        <button type="button" class="button" onclick="clearCanvas(ttCustomer)">Hapus TT Customer</button>
+      </div>
     </div>
 
-    <div class="main-container">
-        <div class="left-column">
-            <h2>Arena Robot</h2>
-            <div class="arena" id="arena">
-                <div id="robot" class="robot"></div>
-            </div>
-        </div>
-
-        <div class="right-column">
-            <h2>Data Robot</h2>
-            <div class="data-container">
-                <div class="data-row">
-                    <span>Compass Angle:</span> <div class="data-box" id="compass-value">0°</div>
-                </div>
-                <div class="data-row">
-                    <span>Gripper Status:</span> <div class="data-box" id="gripper-status">Not Gripping</div>
-                </div>
-                <div class="data-row">
-                    <span>Object Color:</span> <div class="data-box" id="object-color">N/A</div>
-                </div>
-                <div class="data-row">
-                    <span>Ultrasonic 1 Distance:</span> <div class="data-box" id="ultrasonic1">0 cm</div>
-                </div>
-                <div class="data-row">
-                    <span>Ultrasonic 2 Distance:</span> <div class="data-box" id="ultrasonic2">0 cm</div>
-                </div>
-                <div class="data-row">
-                    <span>Ultrasonic 3 Distance:</span> <div class="data-box" id="ultrasonic3">0 cm</div>
-                </div>
-                <div class="data-row">
-                    <span>Encoder:</span> <div class="data-box" id="encoder">0 cm</div>
-                </div>
-            </div>
-        </div>
+    <div class="actions">
+      <button type="button" class="button" onclick="generatePDF()">📄 Generate PDF</button>
     </div>
+  </form>
 
-    <script>
-        const robot = document.getElementById("robot");
-    
-        let posX = 650;  // Koordinat X awal robot
-        let posY = 0;  // Koordinat Y awal robot
-        let speed = 3;   // Kecepatan gerakan robot dalam piksel per detik
-    
-        async function fetchData() {
-            try {
-                const response = await fetch("/get-data/robot");
-                const data = await response.json();
-    
-                // Update data
-                document.getElementById("compass-value").textContent = `${data.compass}°`;
-                document.getElementById("gripper-status").textContent = data.gripper;
-                document.getElementById("object-color").textContent = data.color;
-                document.getElementById("ultrasonic1").textContent = `${data.ultrasonic1} cm`;
-                document.getElementById("ultrasonic2").textContent = `${data.ultrasonic2} cm`;
-                document.getElementById("ultrasonic3").textContent = `${data.ultrasonic3} cm`;
-                document.getElementById("encoder").textContent = `${data.encoder} cm`;
-    
-                // Update robot position
-                updateRobotPosition(data.realX, data.realY, data.compass);
-            } catch (error) {
-                console.error("Error fetching data:", error);
-            }
-        }
-    
-        function updateRobotPosition(realX, realY, compassAngle) {
-            const scale = 3; // 3 piksel = 1 cm
-    
-            // Hitung posisi pada kanvas
-            const canvasX = 690 - realX * scale; // Koordinat kanan ke kiri
-            const canvasY = realY * scale;      // Koordinat bawah ke atas
-    
-            // Perbarui posisi robot
-            robot.style.right = `${canvasX}px`;
-            robot.style.bottom = `${canvasY}px`;
-            robot.style.transform = `rotate(${compassAngle}deg)`;
-            moveRobot(compassAngle  );
-        }
-    
-        // Fungsi untuk menggerakkan robot berdasarkan arah kompas
-        function moveRobot(compassAngle) {
-            const radian = (compassAngle * Math.PI) / 180; // Menghitung radian dari sudut kompas
-            const deltaX = speed * Math.sin(radian);       // Perubahan posisi pada sumbu X
-            const deltaY = speed * Math.cos(radian);       // Perubahan posisi pada sumbu Y
-    
-            // Update posisi robot
-            posX += deltaX;
-            posY += deltaY;
-    
-            // Pastikan robot tetap berada dalam batas arena
-            posX = Math.max(0, Math.min(690, posX));
-            posY = Math.max(0, Math.min(450, posY));
-    
-            // Perbarui tampilan robot
-            robot.style.right = `${690 - posX}px`;
-            robot.style.bottom = `${posY}px`;
-        }
-    
-        // Fetch data every second
-        setInterval(fetchData, 1000);
-    
-        // Move robot every 100ms based on the compass value
-        // setInterval(() => {
-        //     // Ambil nilai kompas dari elemen data
-        //     const compassValue = parseFloat(document.getElementById("compass-value").textContent);
-        //     moveRobot(compassValue);
-        // }, 100); // Gerakkan robot setiap 100ms
-    </script>
+  <script>
+    const beforeInput = document.getElementById('beforeInput');
+    const afterInput = document.getElementById('afterInput');
+    const beforePreview = document.getElementById('beforePreview');
+    const afterPreview = document.getElementById('afterPreview');
+    const headerInput = document.getElementById('headerInput');
+    let headerFile = null;
 
+    headerInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        headerFile = file;
+      }
+    });
+
+    let beforeFiles = [], afterFiles = [];
+
+    function renderPreview(container, files) {
+      container.innerHTML = '';
+      files.forEach(file => {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        container.appendChild(img);
+      });
+    }
+
+    beforeInput.addEventListener('change', (e) => {
+      const newFiles = Array.from(e.target.files);
+      beforeFiles = beforeFiles.concat(newFiles).slice(0, 3);
+      renderPreview(beforePreview, beforeFiles);
+      beforeInput.value = '';
+    });
+
+    afterInput.addEventListener('change', (e) => {
+      const newFiles = Array.from(e.target.files);
+      afterFiles = afterFiles.concat(newFiles).slice(0, 3);
+      renderPreview(afterPreview, afterFiles);
+      afterInput.value = '';
+    });
+
+    function toDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = err => reject(err);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function generatePDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const form = document.forms['reportForm'];
+
+      if (!headerFile) {
+        alert("Please upload the header image.");
+        return;
+      }
+
+      const headerDataUrl = await toDataURL(headerFile);
+      const headerWidth = 190;
+      const headerHeight = 30;
+      const centerX = (210 - headerWidth) / 2;
+      doc.addImage(headerDataUrl, 'PNG', centerX, 10, headerWidth, headerHeight);
+
+      let y = 45;
+      doc.setFontSize(11);
+      doc.text("IMAGES REPORT", 10, y);
+      y += 7;
+      doc.text("1. Project: " + form.project.value, 10, y); y += 7;
+      doc.text("2. Customer: " + form.customer.value, 10, y); y += 7;
+      doc.text("3. Technician: " + form.technician.value, 10, y); y += 7;
+      doc.text("4. PIC Customer: " + form.pic.value, 10, y); y += 7;
+
+      const formattedDate = formatTanggalEnglish(form.workingTime.value);
+      const timeInFormatted = formatTimeTo12Hour(form.timeIn.value);
+      const timeOutFormatted = formatTimeTo12Hour(form.timeOut.value);
+
+      doc.text("Working Date: " + formattedDate, 10, y); y += 7;
+      doc.text("Time In: " + timeInFormatted + " | Time Out: " + timeOutFormatted, 10, y); y += 8;
+
+      async function insertImageRow(title, files) {
+        doc.text(title, 10, y);
+        y += 5;
+        const xPositions = [10, 75, 140];
+        for (let i = 0; i < files.length; i++) {
+          const dataUrl = await toDataURL(files[i]);
+          doc.addImage(dataUrl, 'JPEG', xPositions[i], y, 50, 30);
+        }
+        y += 38;
+      }
+
+      await insertImageRow("BEFORE:", beforeFiles);
+      await insertImageRow("AFTER:", afterFiles);
+
+      y += 5;
+      doc.text("Notes:", 10, y);
+      const noteLines = doc.splitTextToSize(form.note.value, 180);
+      doc.text(noteLines, 10, y + 6);
+      y += 6 + noteLines.length * 5;
+
+      const ttPTUrl = ttPT.toDataURL('image/png');
+      const ttCustomerUrl = ttCustomer.toDataURL('image/png');
+      y += 12;
+      doc.text("Signature PT", 30, y);
+      doc.text("Signature Customer", 140, y);
+      y += 4;
+      doc.addImage(ttPTUrl, 'PNG', 10, y, 60, 30);
+      doc.addImage(ttCustomerUrl, 'PNG', 130, y, 60, 30);
+      y += 35;
+      doc.text("Name: " + form.technician.value, 20, y);
+      doc.text("Name: " + form.customer.value, 140, y);
+
+      doc.save('report.pdf');
+    }
+
+    function formatTanggalEnglish(dateStr) {
+      const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const months = ["January", "February", "March", "April", "May", "June",
+                      "July", "August", "September", "October", "November", "December"];
+      const dateObj = new Date(dateStr);
+      const dayName = days[dateObj.getDay()];
+      const day = dateObj.getDate();
+      const monthName = months[dateObj.getMonth()];
+      const year = dateObj.getFullYear();
+      return ${dayName}, ${monthName} ${day}, ${year};
+    }
+
+    function formatTimeTo12Hour(timeStr) {
+      if (!timeStr) return "";
+      const [hour, minute] = timeStr.split(":");
+      const h = parseInt(hour);
+      const ampm = h >= 12 ? "PM" : "AM";
+      const hour12 = h % 12 || 12;
+      return ${String(hour12).padStart(2, '0')}:${minute} ${ampm};
+    }
+
+    function setupCanvas(canvas) {
+      const ctx = canvas.getContext("2d");
+      ctx.lineWidth = 1.5;
+      let drawing = false;
+
+      canvas.addEventListener("mousedown", (e) => {
+        drawing = true;
+        ctx.beginPath();
+        ctx.moveTo(e.offsetX, e.offsetY);
+      });
+
+      canvas.addEventListener("mousemove", (e) => {
+        if (!drawing) return;
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+      });
+
+      canvas.addEventListener("mouseup", () => drawing = false);
+      canvas.addEventListener("mouseout", () => drawing = false);
+
+      canvas.addEventListener("touchstart", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        drawing = true;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+      });
+
+      canvas.addEventListener("touchmove", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        if (!drawing) return;
+        ctx.lineTo(x, y);
+        ctx.stroke();
+      });
+
+      canvas.addEventListener("touchend", () => drawing = false);
+    }
+
+    function clearCanvas(canvas) {
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    const ttPT = document.getElementById("ttPT");
+    const ttCustomer = document.getElementById("ttCustomer");
+    setupCanvas(ttPT);
+    setupCanvas(ttCustomer);
+  </script>
 </body>
 </html>
