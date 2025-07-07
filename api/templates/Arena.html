@@ -278,4 +278,71 @@
       const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
       const months = ["January", "February", "March", "April", "May", "June",
                       "July", "August", "September", "October", "November", "December"];
-      const dateObj
+      const dateObj = new Date(dateStr);
+      const dayName = days[dateObj.getDay()];
+      const day = dateObj.getDate();
+      const monthName = months[dateObj.getMonth()];
+      const year = dateObj.getFullYear();
+      return `${dayName}, ${monthName} ${day}, ${year}`;
+    }
+
+    function formatTimeTo12Hour(timeStr) {
+      if (!timeStr) return "";
+      const [hour, minute] = timeStr.split(":");
+      const h = parseInt(hour);
+      const ampm = h >= 12 ? "PM" : "AM";
+      const hour12 = h % 12 || 12;
+      return `${String(hour12).padStart(2, '0')}:${minute} ${ampm}`;
+    }
+
+    function setupCanvas(canvas) {
+      const ctx = canvas.getContext("2d");
+      ctx.lineWidth = 1.5;
+      let drawing = false;
+
+      canvas.addEventListener("mousedown", (e) => {
+        drawing = true;
+        ctx.beginPath();
+        ctx.moveTo(e.offsetX, e.offsetY);
+      });
+      canvas.addEventListener("mousemove", (e) => {
+        if (!drawing) return;
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+      });
+      canvas.addEventListener("mouseup", () => drawing = false);
+      canvas.addEventListener("mouseout", () => drawing = false);
+
+      canvas.addEventListener("touchstart", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        drawing = true;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+      });
+      canvas.addEventListener("touchmove", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        if (!drawing) return;
+        ctx.lineTo(x, y);
+        ctx.stroke();
+      });
+      canvas.addEventListener("touchend", () => drawing = false);
+    }
+
+    function clearCanvas(canvas) {
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    const ttPT = document.getElementById("ttPT");
+    const ttCustomer = document.getElementById("ttCustomer");
+    setupCanvas(ttPT);
+    setupCanvas(ttCustomer);
+  </script>
+</body>
+</html>
